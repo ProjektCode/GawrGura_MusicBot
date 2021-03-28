@@ -9,11 +9,12 @@ Imports Discord.Net.Providers.WS4Net
 Public Class bot
     Private _client As DiscordSocketClient
     Private _cmdService As CommandService
-    Private _config As masterConfig
+    Private _config As configManager
+    Private ReadOnly eManager As New eventManager
 
     Public Sub bot()
         _client = New DiscordSocketClient(New DiscordSocketConfig() With {
-            .LogLevel = LogSeverity.Info,
+            .LogLevel = LogSeverity.Debug,
             .DefaultRetryMode = Discord.RetryMode.AlwaysRetry,
             .WebSocketProvider = WS4NetProvider.Instance
          })
@@ -32,16 +33,18 @@ Public Class bot
         collection.AddLavaNode(Sub(LavaConfig)
                                    LavaConfig.SelfDeaf = False
                                End Sub)
-        services.setProvider(collection)
+        serviceManager.setProvider(collection)
 
     End Sub
 
     Public Async Function mainAsync() As Task
         Console.WriteLine("What are you doing waking me up?")
 
-        _config = masterConfig.Load
+        _config = configManager.Load
         bot()
 
+        Await commandManager.loadCommandsAsync
+        Await eManager.loadCommands()
         Await _client.LoginAsync(TokenType.Bot, _config.token)
         Await _client.StartAsync
         Await Task.Delay(Timeout.Infinite)

@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VB-Gawr_Gura", "VB-Gawr_Gura.vbproj", "{9008D4B7-6375-4F9C-BE6A-401E20508A78}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VB-Gawr_Gura", "VB-Gawr_Gura.vbproj", "{9008D4B7-6375-4F9C-BE6A-401E20508A78}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0646CA3C-9E88-41AC-BE33-CF7C6AD5085A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

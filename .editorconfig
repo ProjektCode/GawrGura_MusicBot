@@ -14,3 +14,6 @@ dotnet_analyzer_diagnostic.category-Style.severity = none
 
 # BC42105: Function doesn't return a value on all code paths
 dotnet_diagnostic.BC42105.severity = none
+
+# BC42356: This async method lacks 'Await' operators and so will run synchronously
+dotnet_diagnostic.BC42356.severity = none

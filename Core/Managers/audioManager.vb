@@ -1,5 +1,6 @@
 ﻿Imports System.Text
 Imports Discord
+Imports Discord.Commands
 Imports Discord.WebSocket
 Imports Microsoft.Extensions.DependencyInjection
 Imports Microsoft.Extensions.Logging
@@ -9,18 +10,6 @@ Imports Victoria.EventArgs
 
 NotInheritable Class audioManager
     Private Shared _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
-    Private Shared _logger As ILogger
-
-    Public Sub New(ByVal lavaNode As LavaNode, loggerFactory As ILoggerFactory)
-        _lavaNode = lavaNode
-        _logger = loggerFactory.CreateLogger(Of LavaNode)()
-
-        AddHandler _lavaNode.OnTrackEnded, AddressOf trackEnded
-        AddHandler _lavaNode.OnLog, Function(arg)
-                                        _logger.Log(arg.Severity, arg.Exception, arg.Message)
-                                        Return Task.CompletedTask
-                                    End Function
-    End Sub
 
     Public Shared Async Function joinAsync(ByVal guild As IGuild, ByVal voiceState As IVoiceState, ByVal channel As ITextChannel) As Task(Of String)
 
@@ -34,40 +23,6 @@ NotInheritable Class audioManager
         Try
             Await _lavaNode.JoinAsync(voiceState.VoiceChannel, channel)
             Return $"Joined {voiceState.VoiceChannel.Name}"
-        Catch ex As Exception
-            Return $"ERROR: {ex.Message}"
-        End Try
-
-    End Function
-
-    Public Shared Async Function playAsync(user As SocketGuildUser, guild As IGuild, query As String) As Task(Of String)
-
-        'Error handling
-        If user.VoiceChannel Is Nothing Then
-            Return "You must join a voice channel!"
-        End If
-        If Not _lavaNode.HasPlayer(guild) Then
-            Return "I'm not connected to a voice channel."
-        End If
-        Try
-            Dim player = _lavaNode.GetPlayer(guild)
-            Dim track As LavaTrack
-            Dim search = If(Uri.IsWellFormedUriString(query, UriKind.Absolute), Await _lavaNode.SearchAsync(query), Await _lavaNode.SearchYouTubeAsync(query))
-
-            If search.LoadStatus = LoadStatus.NoMatches Then
-                Return $"{query} could not be found"
-            End If
-            track = search.Tracks.FirstOrDefault
-
-            If player.Track IsNot Nothing AndAlso player.PlayerState = PlayerState.Playing OrElse player.PlayerState = PlayerState.Paused Then
-                player.Queue.Enqueue(track)
-                Console.WriteLine($"[{Date.Now}] (AUDIO) - Track was added to queue.")
-                Return $"{track.Title} has been added to queue"
-            End If
-
-            Await player.PlayAsync(track)
-            Console.WriteLine($"[{Date.Now}] (AUDIO) [Now playing] - {track.Title}")
-            Return $"Now playing: {track.Title}"
         Catch ex As Exception
             Return $"ERROR: {ex.Message}"
         End Try
@@ -170,7 +125,7 @@ NotInheritable Class audioManager
                 Else
                     Dim trackNum = 2
                     For Each track As LavaTrack In player.Queue
-                        descBuilder.Append($"{trackNum}: [{track.Title}]({track.Url}) - {track.Id} {Environment.NewLine}")
+                        descBuilder.Append($"{trackNum}: [{track.Title}] - ({track.Url}) {Environment.NewLine}")
                         trackNum += 1
                     Next
                     Return descBuilder.ToString
@@ -183,27 +138,38 @@ NotInheritable Class audioManager
         End Try
     End Function
 
-    Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task
+    Public Shared Async Function clearTracks(guild As IGuild) As Task(Of String)
+        'Find out why it's only removing the first entry in the queue
 
-        If Not args.Reason.ShouldPlayNext Then
-            Return
-        End If
+        Try
+            Dim player = _lavaNode.GetPlayer(guild)
+            Dim descBuilder = New StringBuilder
+            If player Is Nothing Then
+                Return "Player could not be found"
+            End If
+            If player.PlayerState = PlayerState.Playing Then
+                For Each track As LavaTrack In player.Queue
+                    player.Queue.TryDequeue(track)
+                    Console.WriteLine($"{track.Title} has been removed")
+                Next
 
-        Dim player = args.Player
-        Dim queueable As LavaTrack
-        If Not player.Queue.TryDequeue(queueable) Then
-            Await args.Player.TextChannel.SendMessageAsync("Playback Finished")
-            Return
-        End If
-        Dim tempVar As Boolean = TypeOf queueable Is LavaTrack
-        Dim track As LavaTrack = If(tempVar, queueable, Nothing)
-        If Not tempVar Then
-            Await player.TextChannel.SendMessageAsync("Next item in the queue is not a track")
-            Return
-        End If
-        Await player.PlayAsync(track)
-        Await player.TextChannel.SendMessageAsync($"Now Playing *{track.Title} - {track.Author}*")
+            End If
 
+            If player.Queue.Count = 0 Then
+                Return "queue has been cleared"
+            Else
+                Dim tracknum = player.Queue.Count
+                For Each track As LavaTrack In player.Queue
+                    descBuilder.Append($"{tracknum}: [{track.Title}] - could not be cleared {Environment.NewLine}")
+                    tracknum += 1
+                Next
+                Return descBuilder.ToString
+            End If
+        Catch ex As Exception
+            Return ex.Message
+        End Try
     End Function
+
+
 
 End Class

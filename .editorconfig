@@ -8,3 +8,9 @@ dotnet_diagnostic.BC42025.severity = none
 
 # BC42030: Variable is passed by reference before it has been assigned a value
 dotnet_diagnostic.BC42030.severity = none
+
+# Default severity for analyzer diagnostics with category 'Style'
+dotnet_analyzer_diagnostic.category-Style.severity = none
+
+# BC42105: Function doesn't return a value on all code paths
+dotnet_diagnostic.BC42105.severity = none

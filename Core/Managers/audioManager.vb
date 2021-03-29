@@ -1,13 +1,26 @@
-﻿Imports Discord
+﻿Imports System.Text
+Imports Discord
 Imports Discord.WebSocket
 Imports Microsoft.Extensions.DependencyInjection
+Imports Microsoft.Extensions.Logging
 Imports Victoria
 Imports Victoria.Enums
 Imports Victoria.EventArgs
-Imports System
 
 NotInheritable Class audioManager
-    Private Shared ReadOnly _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
+    Private Shared _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
+    Private Shared _logger As ILogger
+
+    Public Sub New(ByVal lavaNode As LavaNode, loggerFactory As ILoggerFactory)
+        _lavaNode = lavaNode
+        _logger = loggerFactory.CreateLogger(Of LavaNode)()
+
+        AddHandler _lavaNode.OnTrackEnded, AddressOf trackEnded
+        AddHandler _lavaNode.OnLog, Function(arg)
+                                        _logger.Log(arg.Severity, arg.Exception, arg.Message)
+                                        Return Task.CompletedTask
+                                    End Function
+    End Sub
 
     Public Shared Async Function joinAsync(ByVal guild As IGuild, ByVal voiceState As IVoiceState, ByVal channel As ITextChannel) As Task(Of String)
 
@@ -53,7 +66,7 @@ NotInheritable Class audioManager
             End If
 
             Await player.PlayAsync(track)
-            Console.WriteLine($"Now playing: {track.Title} ")
+            Console.WriteLine($"[{Date.Now}] (AUDIO) [Now playing] - {track.Title}")
             Return $"Now playing: {track.Title}"
         Catch ex As Exception
             Return $"ERROR: {ex.Message}"
@@ -74,28 +87,6 @@ NotInheritable Class audioManager
         Catch ex As InvalidOperationException
             Return $"Error: {ex.Message}"
         End Try
-
-    End Function
-
-    Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task
-
-        If Not args.Reason.ShouldPlayNext Then
-            Return
-        End If
-
-        Dim queueable As LavaTrack
-        If Not args.Player.Queue.TryDequeue(queueable) Then
-
-            Return
-        End If
-        Dim tempVar As Boolean = TypeOf queueable Is LavaTrack
-        Dim track As LavaTrack = If(tempVar, CType(queueable, LavaTrack), Nothing)
-        If Not tempVar Then
-            Await args.Player.TextChannel.SendMessageAsync("Next item in the queue is not a track")
-            Return
-        End If
-        Await args.Player.PlayAsync(track)
-        Await args.Player.TextChannel.SendMessageAsync($"Now Playing *{track.Title} - {track.Author}*")
 
     End Function
 
@@ -135,6 +126,83 @@ NotInheritable Class audioManager
         Catch ex As InvalidOperationException
             Return ex.Message
         End Try
+
+    End Function
+
+    Public Shared Async Function skipTrack(guild As IGuild) As Task(Of String)
+        Try
+            Dim player = _lavaNode.GetPlayer(guild)
+            If player Is Nothing Then 'Check is the player is null
+                Return "Could not find player"
+            End If
+            If player.Queue.Count < 1 Then 'Checking queue to see if less than 1 if true skip
+                Return "No more tracks to skip to"
+
+            Else
+                Try
+                    'Save current song for use
+                    Dim currentTrack = player.Track
+                    'Skip current track
+                    Await player.SkipAsync
+                    Return $"The song {currentTrack.Title} has been skipped"
+
+                Catch ex As Exception
+                    Return ex.Message
+                End Try
+            End If
+
+        Catch ex As Exception
+            Return ex.Message
+        End Try
+    End Function
+
+    Public Shared Async Function listTracks(guild As IGuild) As Task(Of String)
+        Try
+            Dim descBuilder = New StringBuilder
+            Dim player = _lavaNode.GetPlayer(guild)
+            If player Is Nothing Then 'Chek if player is null
+                Return "Player could not be found"
+            End If
+            If player.PlayerState = PlayerState.Playing Then
+                If player.Queue.Count < 1 And player.Track IsNot Nothing Then
+                    Return $"**Now Playing:** {player.Track.Title} - Nothing else is queued"
+
+                Else
+                    Dim trackNum = 2
+                    For Each track As LavaTrack In player.Queue
+                        descBuilder.Append($"{trackNum}: [{track.Title}]({track.Url}) - {track.Id} {Environment.NewLine}")
+                        trackNum += 1
+                    Next
+                    Return descBuilder.ToString
+
+                End If
+            End If
+
+        Catch ex As Exception
+            Return ex.Message
+        End Try
+    End Function
+
+    Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task
+
+        If Not args.Reason.ShouldPlayNext Then
+            Return
+        End If
+
+        Dim player = args.Player
+        Dim queueable As LavaTrack
+        If Not player.Queue.TryDequeue(queueable) Then
+            Await args.Player.TextChannel.SendMessageAsync("Playback Finished")
+            Return
+        End If
+        Dim tempVar As Boolean = TypeOf queueable Is LavaTrack
+        Dim track As LavaTrack = If(tempVar, queueable, Nothing)
+        If Not tempVar Then
+            Await player.TextChannel.SendMessageAsync("Next item in the queue is not a track")
+            Return
+        End If
+        Await player.PlayAsync(track)
+        Await player.TextChannel.SendMessageAsync($"Now Playing *{track.Title} - {track.Author}*")
 
     End Function
 

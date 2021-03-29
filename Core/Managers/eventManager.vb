@@ -5,29 +5,28 @@ Imports Victoria
 Imports Microsoft.Extensions.DependencyInjection
 
 NotInheritable Class eventManager
-    Private Shared _lavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
+    Private Shared _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
     Private Shared _client As DiscordSocketClient = serviceManager.getService(Of DiscordSocketClient)
     Private Shared _cmdService As CommandService = serviceManager.getService(Of CommandService)
     Private config As configManager
 
-    Public Function loadCommands() As Task
+    Public Function loadEvents() As Task
         config = configManager.Load
-        'AddHandler _client.Log, AddressOf clientLog
-        'AddHandler _cmdService.Log, AddressOf commandLog
+        AddHandler _client.Log, AddressOf clientLog
+        AddHandler _cmdService.Log, AddressOf commandLog
         AddHandler _client.Ready, AddressOf onReady
         AddHandler _client.MessageReceived, AddressOf messageRecieved
+        AddHandler _lavaNode.OnTrackEnded, AddressOf audioManager.trackEnded
 
         Return Task.CompletedTask
     End Function
 
-    Private Function clientLog() As Task
-        'Dim message As SocketMessage
-        Console.WriteLine($"Client Log")
+    Private Function clientLog(msg As LogMessage) As Task
+        Console.WriteLine($"[{msg}]")
         Return Task.CompletedTask
     End Function
-    Private Function commandLog() As Task
-        'Dim message As SocketMessage
-        Console.WriteLine($"Command Log")
+    Private Function commandLog(msg As LogMessage) As Task
+        Console.WriteLine($"[{msg}] has been used.")
         Return Task.CompletedTask
     End Function
     Private Async Function onReady() As Task 'Place custom game event here once masterClass is made
@@ -39,7 +38,7 @@ NotInheritable Class eventManager
             End Try
         End If
 
-        Console.WriteLine($"{Date.Now}{vbTab}(READY) - Bot is ready")
+        'Console.WriteLine($"[{Date.Now}]{vbTab}(READY) - Bot is ready")
         Await _client.SetStatusAsync(UserStatus.Online)
         Await _client.SetGameAsync($"prefix is {config.prefix}", type:=ActivityType.Listening)
     End Function

@@ -14,13 +14,13 @@ Public Class bot
 
     Public Sub bot()
         _client = New DiscordSocketClient(New DiscordSocketConfig() With {
-            .LogLevel = LogSeverity.Debug,
+            .LogLevel = LogSeverity.Info,
             .DefaultRetryMode = Discord.RetryMode.AlwaysRetry,
             .WebSocketProvider = WS4NetProvider.Instance
          })
 
         _cmdService = New CommandService(New CommandServiceConfig() With {
-            .LogLevel = LogSeverity.Debug,
+            .LogLevel = LogSeverity.Info,
             .CaseSensitiveCommands = False,
             .DefaultRunMode = RunMode.Async,
             .IgnoreExtraArgs = True
@@ -44,7 +44,7 @@ Public Class bot
         bot()
 
         Await commandManager.loadCommandsAsync
-        Await eManager.loadCommands()
+        Await eManager.loadEvents()
         Await _client.LoginAsync(TokenType.Bot, _config.token)
         Await _client.StartAsync
         Await Task.Delay(Timeout.Infinite)

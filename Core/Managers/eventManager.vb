@@ -11,6 +11,7 @@ NotInheritable Class eventManager
     Private config As configManager
 
     Public Function loadCommands() As Task
+        config = configManager.Load
         'AddHandler _client.Log, AddressOf clientLog
         'AddHandler _cmdService.Log, AddressOf commandLog
         AddHandler _client.Ready, AddressOf onReady
@@ -40,7 +41,7 @@ NotInheritable Class eventManager
 
         Console.WriteLine($"{Date.Now}{vbTab}(READY) - Bot is ready")
         Await _client.SetStatusAsync(UserStatus.Online)
-        Await _client.SetGameAsync($"prefix is ?", type:=ActivityType.Listening)
+        Await _client.SetGameAsync($"prefix is {config.prefix}", type:=ActivityType.Listening)
     End Function
 
     Private Async Function messageRecieved(arg As SocketMessage) As Task

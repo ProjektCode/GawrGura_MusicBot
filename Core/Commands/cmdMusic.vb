@@ -127,4 +127,12 @@ Public Class cmdMusic
         Await msg.SendMessageAsync(Await audioManager.clearTracks(g))
     End Function
 
+    <Command("stop")>
+    <Summary("Stops playback and clears current queue")>
+    Public Async Function cmdStop() As Task
+        Dim msg = Context.Channel
+        Dim g = Context.Guild
+        Await msg.SendMessageAsync(Await audioManager.stopBot(g))
+    End Function
+
 End Class

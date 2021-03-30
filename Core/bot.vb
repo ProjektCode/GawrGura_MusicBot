@@ -38,7 +38,7 @@ Public Class bot
     End Sub
 
     Public Async Function mainAsync() As Task
-        Console.WriteLine("What are you doing waking me up?")
+        Console.WriteLine($"What are you doing waking me up? {Environment.NewLine}")
 
         _config = configManager.Load
         bot()

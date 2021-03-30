@@ -99,7 +99,7 @@ NotInheritable Class audioManager
                     Dim currentTrack = player.Track
                     'Skip current track
                     Await player.SkipAsync
-                    Return $"The song {currentTrack.Title} has been skipped"
+                    Return $"The song *{currentTrack.Title}* has been skipped"
 
                 Catch ex As Exception
                     Return ex.Message
@@ -168,6 +168,23 @@ NotInheritable Class audioManager
         Catch ex As Exception
             Return ex.Message
         End Try
+    End Function
+
+    Public Shared Async Function stopBot(guild As IGuild) As Task(Of String)
+        Try
+            Dim player = _lavaNode.GetPlayer(guild)
+            If player Is Nothing Then
+                Return "Could not aquire player"
+            End If
+
+            If player.PlayerState = PlayerState.Playing Then
+                Await player.StopAsync
+            End If
+            Return "I have stopped playback and playlist has been cleared"
+        Catch ex As Exception
+            Return ex.Message
+        End Try
+
     End Function
 
 

@@ -51,8 +51,8 @@ Public Class cmdMusic
                 Else
                     Dim track = searchResponse.Tracks(0)
                     player.Queue.Enqueue(track)
-
-                    Console.WriteLine($"Enqueued: {track.Title}")
+                    'Await ReplyAsync($"Added {track.Title} to the queue") 'Sends all other songs in the queue via message
+                    Console.WriteLine(vbTab + $"Enqueued: {track.Title}")
                 End If
             Else
                 Dim track = searchResponse.Tracks(0)
@@ -125,6 +125,14 @@ Public Class cmdMusic
         Dim msg = Context.Channel
         Dim g = Context.Guild
         Await msg.SendMessageAsync(Await audioManager.clearTracks(g))
+    End Function
+
+    <Command("stop")>
+    <Summary("Stops playback completely")>
+    Public Async Function cmdStop() As Task
+        Dim msg = Context.Channel
+        Dim g = Context.Guild
+        Await msg.SendMessageAsync(Await audioManager.stopAsync(g))
     End Function
 
 End Class

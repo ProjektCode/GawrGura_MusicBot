@@ -19,13 +19,14 @@ NotInheritable Class eventManager
         AddHandler _cmdService.Log, AddressOf logAsync
         AddHandler _client.Ready, AddressOf onReady
         AddHandler _client.MessageReceived, AddressOf messageRecieved
-        AddHandler _lavaNode.OnTrackEnded, AddressOf trackEnded
+        AddHandler _lavaNode.OnTrackEnded, AddressOf audioManager.trackEnded
 
 
         Return Task.CompletedTask
     End Function
 
 #Region "Discord Events"
+
     Private Async Function logAsync(msg As LogMessage) As Task
         Await (loggingManager.LogAsync(msg.Source, msg.Severity, msg.Message))
     End Function
@@ -41,7 +42,6 @@ NotInheritable Class eventManager
         Await _client.SetStatusAsync(UserStatus.Online)
         Await _client.SetGameAsync($"prefix is {config.prefix}", type:=ActivityType.Listening)
         SystemSounds.Asterisk.Play()
-        Console.Title = "Gawr Gura"
     End Function
     Private Async Function messageRecieved(arg As SocketMessage) As Task
         Dim message = TryCast(arg, SocketUserMessage)
@@ -70,34 +70,5 @@ NotInheritable Class eventManager
     End Function
 
 #End Region
-
-
-#Region "Victoria Events"
-    Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task
-
-        If Not args.Reason.ShouldPlayNext Then
-            Return
-        End If
-
-        Dim player = args.Player
-        Dim queueable As LavaTrack
-        If Not player.Queue.TryDequeue(queueable) Then
-            Await args.Player.TextChannel.SendMessageAsync("Playback Finished")
-            Return
-        End If
-        Dim tempVar As Boolean = TypeOf queueable Is LavaTrack
-        Dim track As LavaTrack = If(tempVar, queueable, Nothing)
-        If Not tempVar Then
-            Await player.TextChannel.SendMessageAsync("Next item in the queue is not a track")
-            Return
-        End If
-        Await player.PlayAsync(track)
-        Await player.TextChannel.SendMessageAsync($"Now Playing *{track.Title} - {track.Author}*")
-
-    End Function
-
-
-#End Region
-
 
 End Class

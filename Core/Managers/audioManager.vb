@@ -33,7 +33,7 @@ NotInheritable Class audioManager
 
         Try
             Dim player = _lavaNode.GetPlayer(guild)
-            If player.PlayerState = PlayerState.Playing Then
+            If player.PlayerState = PlayerState.Playing Or player.PlayerState = PlayerState.Connected Then
                 Await player.StopAsync
                 Await _lavaNode.LeaveAsync(player.VoiceChannel)
                 Console.WriteLine($"[{Date.Now}] {vbTab} (AUDIO) {vbTab} Bot has left a voice channel")
@@ -170,6 +170,56 @@ NotInheritable Class audioManager
         End Try
     End Function
 
+    Public Shared Async Function stopAsync(guild As IGuild) As Task(Of String)
 
+        Try
+
+            Dim player = _lavaNode.GetPlayer(guild)
+            If player Is Nothing Then
+                Return "Could not find player."
+            End If
+
+            If player.PlayerState = PlayerState.Playing Then
+                Await player.StopAsync
+            Else
+                Return "You have to be playing something in order to use this command"
+            End If
+            Await loggingManager.LogInformationAsync("audio", $"Bot has stopped playback.")
+            Return "Playback has stopped and queue has been cleared"
+
+        Catch ex As Exception
+            Return ex.Message
+        End Try
+
+    End Function
+
+
+
+#Region "Audio Events"
+    Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task
+
+        If Not args.Reason.ShouldPlayNext Then
+            Return
+        End If
+
+        Dim player = args.Player
+        Dim queueable As LavaTrack
+        If Not player.Queue.TryDequeue(queueable) Then
+            Await args.Player.TextChannel.SendMessageAsync("Playback Finished")
+            Return
+        End If
+        Dim tempVar As Boolean = TypeOf queueable Is LavaTrack
+        Dim track As LavaTrack = If(tempVar, queueable, Nothing)
+        If Not tempVar Then
+            Await player.TextChannel.SendMessageAsync("Next item in the queue is not a track")
+            Return
+        End If
+        Await player.PlayAsync(track)
+        Await player.TextChannel.SendMessageAsync($"Now Playing *{track.Title} - {track.Author}*")
+
+    End Function
+
+
+#End Region
 
 End Class

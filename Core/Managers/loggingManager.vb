@@ -11,7 +11,7 @@ NotInheritable Class loggingManager
 		If severity.Equals(Nothing) Then
 			severity = LogSeverity.Warning
 		End If
-		Await Append($"{GetSeverityString(severity)}", GetConsoleColor(severity))
+		Await Append($"{vbTab + GetSeverityString(severity)}", GetConsoleColor(severity))
 		Await Append($" [{SourceToString(src)}] ", ConsoleColor.DarkGray)
 
 		If Not String.IsNullOrWhiteSpace(message) Then
@@ -21,8 +21,8 @@ NotInheritable Class loggingManager
 		ElseIf exception.Message Is Nothing Then
 			Await Append($"Unknown {exception.StackTrace}" & vbLf, GetConsoleColor(severity))
 		Else
-			Console.WriteLine("I don't know the syntax translation of th")
-			'Await Append($"{If(exception.Message, "Unknown")} {If(exception.StackTrace, "Unknown")}, {GetConsoleColor(severity)}, {Color.LightOrange}")
+			Console.WriteLine("I don't know the syntax translation of this")
+			'Await Append($"{If(exception.Message, "Unknown")} {If(exception.StackTrace, "Unknown")}, {GetConsoleColor(severity)}, {Color.LightOrange}") 'Figure out what the hell this is suppose to mean
 		End If
 	End Function
 

@@ -19,33 +19,37 @@ Module Program
     Dim lavalink = $"{path}" + "Lavalink.jar"
     Dim app = $"{path}" + "application.yaml"
     Sub Main()
-        Console.Title = "Looking for Lavalink server"
-        Sleep(2000)
+        Console.Title = "Gawr Gura"
+        setBanner("/ Gawr Gura \", ConsoleColor.Cyan, ConsoleColor.Red)
+        consoleTextColor("Looking for Lavalink server....", ConsoleColor.DarkRed)
         If Not File.Exists(lavalink) Or Not File.Exists(app) Then
             Console.WriteLine("After the program closes please add your Lavalink.jar and application.yml file into the bin\netcoreapp3.1 folder.")
             Sleep(3000)
         Else
-            Console.Title = "Starting Lavalink Server..."
-            Console.WriteLine("Currently setting up the lavalink server...")
+            consoleTextColor("Lavalink server has been found now starting server...", ConsoleColor.Yellow)
             process.EnableRaisingEvents = False
             process.StartInfo.FileName = "javaw.exe"
             process.StartInfo.Arguments = "-jar " + """" + path + "Lavalink.jar"
             process.Start()
             Sleep(5000)
-            Console.Clear()
-            Console.Write("Sever is setup now starting bot")
+            consoleTextColor("Sever is setup now starting bot", ConsoleColor.Green)
             Sleep(1500)
             Console.Clear()
-            Console.Title = "Starting Gura"
-            setBanner("/ Gawr Gura \", ConsoleColor.Cyan)
+            setBanner("/ Gawr Gura \", ConsoleColor.Cyan, ConsoleColor.Green)
             Call New bot().mainAsync().GetAwaiter().GetResult()
 
         End If
     End Sub
 
-    Private Sub setBanner(text As String, color As ConsoleColor)
-        FiggleFonts.Standard.Render(text)
+    Private Sub setBanner(text As String, color As ConsoleColor, _color As ConsoleColor)
         Console.ForegroundColor = color
-        Console.WriteLine(FiggleFonts.Standard.Render(text), color)
+        Console.Write(FiggleFonts.Standard.Render(text), color)
+        Console.ForegroundColor = _color
+        Console.WriteLine("===================================================================", _color)
+    End Sub
+
+    Private Sub consoleTextColor(text As String, color As ConsoleColor)
+        Console.ForegroundColor = color
+        Console.WriteLine(vbTab + text, color)
     End Sub
 End Module

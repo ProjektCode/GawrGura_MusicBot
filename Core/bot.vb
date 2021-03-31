@@ -20,7 +20,7 @@ Public Class bot
          })
 
         _cmdService = New CommandService(New CommandServiceConfig() With {
-            .LogLevel = LogSeverity.Info,
+            .LogLevel = LogSeverity.Critical,
             .CaseSensitiveCommands = False,
             .DefaultRunMode = RunMode.Async,
             .IgnoreExtraArgs = True

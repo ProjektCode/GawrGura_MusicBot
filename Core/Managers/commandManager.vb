@@ -7,7 +7,6 @@ NotInheritable Class commandManager
 
     Public Shared Async Function loadCommandsAsync() As Task
         Await cmdService.AddModulesAsync(Assembly.GetEntryAssembly, serviceManager.provider)
-
     End Function
 
 End Class

@@ -3,6 +3,7 @@ Imports Discord.Commands
 Imports Discord
 Imports Victoria
 Imports Microsoft.Extensions.DependencyInjection
+Imports Microsoft.Extensions.Logging
 Imports Victoria.EventArgs
 
 NotInheritable Class eventManager
@@ -10,6 +11,7 @@ NotInheritable Class eventManager
     Private Shared _client As DiscordSocketClient = serviceManager.getService(Of DiscordSocketClient)
     Private Shared _cmdService As CommandService = serviceManager.getService(Of CommandService)
     Private config As configManager
+    Private _logger As LoggerMessage
 
     Public Function loadEvents() As Task
         config = configManager.Load
@@ -18,17 +20,19 @@ NotInheritable Class eventManager
         AddHandler _client.Ready, AddressOf onReady
         AddHandler _client.MessageReceived, AddressOf messageRecieved
         AddHandler _lavaNode.OnTrackEnded, AddressOf trackEnded
+        AddHandler _lavaNode.OnLog, AddressOf lava_onLog
+
 
         Return Task.CompletedTask
     End Function
 
 #Region "Discord Events"
     Private Function clientLog(msg As LogMessage) As Task
-        Console.WriteLine($"[{msg}]")
+        Console.WriteLine($"(GATEWAY) {vbTab} {msg}")
         Return Task.CompletedTask
     End Function
     Private Function commandLog(msg As LogMessage) As Task
-        Console.WriteLine($"[{msg}] has been used.")
+        Console.WriteLine($"(COMMAND) {vbTab} {msg}")
         Return Task.CompletedTask
     End Function
     Private Async Function onReady() As Task 'Place custom game event here once masterClass is made
@@ -40,9 +44,9 @@ NotInheritable Class eventManager
             End Try
         End If
 
-        'Console.WriteLine($"[{Date.Now}]{vbTab}(READY) - Bot is ready")
         Await _client.SetStatusAsync(UserStatus.Online)
         Await _client.SetGameAsync($"prefix is {config.prefix}", type:=ActivityType.Listening)
+        Console.WriteLine($"(READY EVENT FINISHED) - Bot is ready")
     End Function
     Private Async Function messageRecieved(arg As SocketMessage) As Task
         Dim message = TryCast(arg, SocketUserMessage)
@@ -96,6 +100,12 @@ NotInheritable Class eventManager
         Await player.TextChannel.SendMessageAsync($"Now Playing *{track.Title} - {track.Author}*")
 
     End Function
+
+    Private Function lava_onLog(arg As LogMessage) As Task
+        Console.WriteLine($"(VICTORIA) {vbTab} {arg}")
+        Return Task.CompletedTask
+    End Function
+
 
 #End Region
 

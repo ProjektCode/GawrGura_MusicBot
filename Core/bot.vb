@@ -20,7 +20,7 @@ Public Class bot
          })
 
         _cmdService = New CommandService(New CommandServiceConfig() With {
-            .LogLevel = LogSeverity.Critical,
+            .LogLevel = LogSeverity.Verbose,
             .CaseSensitiveCommands = False,
             .DefaultRunMode = RunMode.Async,
             .IgnoreExtraArgs = True
@@ -38,7 +38,7 @@ Public Class bot
     End Sub
 
     Public Async Function mainAsync() As Task
-        Console.WriteLine("What are you doing waking me up?")
+        'Console.WriteLine("What are you doing waking me up?")
 
         _config = configManager.Load
         bot()

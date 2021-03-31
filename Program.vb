@@ -10,7 +10,6 @@ Imports System
 
 Module Program
     Sub Main()
-        Console.Title = "Gawr Gura Music Bot"
         Call New bot().mainAsync().GetAwaiter().GetResult()
     End Sub
 End Module

@@ -37,6 +37,10 @@ NotInheritable Class loggingManager
 		Return LogAsync(source, LogSeverity.Info, message)
 	End Function
 
+	Public Shared Function LogSetupAsync(ByVal source As String, ByVal message As String)
+		Return LogAsync(source, LogSeverity.Verbose, message)
+	End Function
+
 	' Format The Output 
 	Private Shared Async Function Append(ByVal message As String, ByVal color As ConsoleColor) As Task
 		Await Task.Run(Sub()
@@ -66,6 +70,8 @@ NotInheritable Class loggingManager
 				Return "LAVA#"
 			Case "bot"
 				Return "BOTWN"
+			Case "setup"
+				Return "SETUP"
 			Case Else
 				Return src
 		End Select
@@ -83,7 +89,7 @@ NotInheritable Class loggingManager
 			Case LogSeverity.Info
 				Return "INFO"
 			Case LogSeverity.Verbose
-				Return "VERB"
+				Return "SETP"
 			Case LogSeverity.Warning
 				Return "WARN"
 			Case Else
@@ -103,7 +109,7 @@ NotInheritable Class loggingManager
 			Case LogSeverity.Info
 				Return ConsoleColor.Green
 			Case LogSeverity.Verbose
-				Return ConsoleColor.DarkCyan
+				Return ConsoleColor.DarkMagenta
 			Case LogSeverity.Warning
 				Return ConsoleColor.Yellow
 			Case Else

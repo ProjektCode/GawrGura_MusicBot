@@ -193,6 +193,32 @@ NotInheritable Class audioManager
 
     End Function
 
+    Public Shared Async Function replyAsync(guild As IGuild) As Task(Of String)
+
+        Try
+
+            Dim player = _lavaNode.GetPlayer(guild)
+            If player Is Nothing Then
+                Return "Could not find player."
+            End If
+            If Not player.PlayerState = PlayerState.Playing Then
+                Return "I need to be playing something in order to repeat."
+            End If
+
+            Dim timespan As TimeSpan = TimeSpan.Zero
+            Await player.SeekAsync(timespan)
+            Await loggingManager.LogInformationAsync("audio", $"{player.Track.Title} has been repeated.")
+            Return $"I have repeated {player.Track.Title}"
+
+
+        Catch ex As Exception
+            loggingManager.LogCriticalAsync("audio", ex.Message)
+            Return ex.Message
+        End Try
+
+
+    End Function
+
 
 
 #Region "Audio Events"
@@ -219,6 +245,12 @@ NotInheritable Class audioManager
 
     End Function
 
+    Public Shared Async Function updatePlayer(args As PlayerUpdateEventArgs) As Task
+        Dim player = args.Player
+        Dim track As LavaTrack = player.Track
+        Dim position As TimeSpan = args.Position
+
+    End Function
 
 #End Region
 

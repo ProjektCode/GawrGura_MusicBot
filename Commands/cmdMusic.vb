@@ -135,4 +135,13 @@ Public Class cmdMusic
         Await msg.SendMessageAsync(Await audioManager.stopAsync(g))
     End Function
 
+    <Command("repeat")>
+    <Summary("Repeats the current song")>
+    <[Alias]("restart")>
+    Public Async Function cmdRepeat() As Task
+        Dim msg = Context.Channel
+        Dim g = Context.Guild
+        Await msg.SendMessageAsync(Await audioManager.replyAsync(g))
+    End Function
+
 End Class

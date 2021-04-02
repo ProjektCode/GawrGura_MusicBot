@@ -20,10 +20,8 @@ NotInheritable Class loggingManager
 			Await Append("Uknown Exception. Exception Returned Null." & vbLf, ConsoleColor.DarkRed)
 		ElseIf exception.Message Is Nothing Then
 			Await Append($"Unknown {exception.StackTrace}" & vbLf, GetConsoleColor(severity))
-		Else
-			Console.WriteLine("I don't know the syntax translation of this")
-			'Await Append($"{If(exception.Message, "Unknown")} {If(exception.StackTrace, "Unknown")}, {GetConsoleColor(severity)}, {Color.LightOrange}") 'Figure out what the hell this is suppose to mean
 		End If
+
 	End Function
 
 
@@ -72,6 +70,8 @@ NotInheritable Class loggingManager
 				Return "BOTWN"
 			Case "setup"
 				Return "SETUP"
+			Case "command"
+				Return "CMMND"
 			Case Else
 				Return src
 		End Select

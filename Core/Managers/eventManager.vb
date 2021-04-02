@@ -20,6 +20,7 @@ NotInheritable Class eventManager
         AddHandler _client.Ready, AddressOf onReady
         AddHandler _client.MessageReceived, AddressOf messageRecieved
         AddHandler _lavaNode.OnTrackEnded, AddressOf audioManager.trackEnded
+        AddHandler _lavaNode.OnTrackStarted, AddressOf audioManager.trackStart
 
 
         Return Task.CompletedTask

@@ -8,6 +8,7 @@ Imports Victoria.Enums
 <Name("Music")>
 Public Class cmdMusic
     Inherits ModuleBase(Of SocketCommandContext)
+    Dim _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
 
     <Command("join")>
     <Summary("Joins the voice channel you are currently in")>
@@ -19,8 +20,8 @@ Public Class cmdMusic
 
     <Command("play")>
     <Summary("Plays song from YouTube")>
-    Public Async Function PlayAsync(<Remainder> ByVal searchQuery As String) As Task 'Figure out how to import this into audioManager
-        Dim _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
+    Public Async Function PlayAsync(<Remainder> ByVal searchQuery As String) As Task 'Figure out how to import this into audioManager - It does nothing when added inyo audioManager but when in the command class it works fine
+
         If String.IsNullOrWhiteSpace(searchQuery) Then
             Await ReplyAsync("Please provide search terms.")
             Return
@@ -46,13 +47,12 @@ Public Class cmdMusic
                     For Each track In searchResponse.Tracks
                         player.Queue.Enqueue(track)
                     Next track
-
                     Await ReplyAsync($"Queued {searchResponse.Tracks.Count} tracks.")
                 Else
                     Dim track = searchResponse.Tracks(0)
                     player.Queue.Enqueue(track)
                     'Await ReplyAsync($"Added {track.Title} to the queue") 'Sends all other songs in the queue via message
-                    Console.WriteLine(vbTab + $"Enqueued: {track.Title}")
+                    Await loggingManager.LogInformationAsync("audio", $"Enqueued: {track.Title}")
                 End If
             Else
                 Dim track = searchResponse.Tracks(0)
@@ -61,7 +61,7 @@ Public Class cmdMusic
                     For i = 0 To searchResponse.Tracks.Count - 1
                         If i = 0 Then
                             Await player.PlayAsync(track)
-                            Await ReplyAsync($"Now Playing: {track.Title}")
+                            Await ReplyAsync($"Now Playing: **{track.Title}**")
                         Else
                             player.Queue.Enqueue(searchResponse.Tracks(i))
                         End If
@@ -70,7 +70,7 @@ Public Class cmdMusic
                     Await ReplyAsync($"Queued {searchResponse.Tracks.Count} tracks.")
                 Else
                     Await player.PlayAsync(track)
-                    Await ReplyAsync($"Now Playing: {track.Title}")
+                    Await ReplyAsync($"Now Playing: **{track.Title}**")
                 End If
             End If
         Next query
@@ -135,13 +135,21 @@ Public Class cmdMusic
         Await msg.SendMessageAsync(Await audioManager.stopAsync(g))
     End Function
 
-    <Command("repeat")>
+    <Command("restart")>
     <Summary("Repeats the current song")>
-    <[Alias]("restart")>
     Public Async Function cmdRepeat() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
-        Await msg.SendMessageAsync(Await audioManager.replyAsync(g))
+        Await msg.SendMessageAsync(Await audioManager.restartAsync(g))
+    End Function
+
+    <Command("seek")>
+    <Summary("Seek to a certain point in the current song")>
+    <[Alias]("sk")>
+    Public Async Function cmdSeek(<Remainder> time As TimeSpan) As Task
+        Dim msg = Context.Channel
+        Dim g = Context.Guild
+        Await msg.SendMessageAsync(Await audioManager.seekAsync(g, time))
     End Function
 
 End Class

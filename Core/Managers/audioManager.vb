@@ -1,4 +1,6 @@
-﻿Imports System.Text
+﻿Imports System.Collections.Concurrent
+Imports System.Text
+Imports System.Threading
 Imports Discord
 Imports Discord.Commands
 Imports Discord.WebSocket
@@ -10,6 +12,8 @@ Imports Victoria.EventArgs
 
 NotInheritable Class audioManager
     Private Shared _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
+    Private Shared _disconnectTokens = New ConcurrentDictionary(Of ULong, CancellationTokenSource)()
+
 
     Public Shared Async Function joinAsync(ByVal guild As IGuild, ByVal voiceState As IVoiceState, ByVal channel As ITextChannel) As Task(Of String)
 
@@ -111,11 +115,11 @@ NotInheritable Class audioManager
         End Try
     End Function
 
-    Public Shared Async Function listTracks(guild As IGuild) As Task(Of String)
+    Public Shared Async Function listTracks(guild As IGuild) As Task(Of String) 'When converting to embed add track.url back
         Try
             Dim descBuilder = New StringBuilder
             Dim player = _lavaNode.GetPlayer(guild)
-            If player Is Nothing Then 'Chek if player is null
+            If player Is Nothing Then 'Check if player is null
                 Return "Player could not be found"
             End If
             If player.PlayerState = PlayerState.Playing Then
@@ -125,7 +129,7 @@ NotInheritable Class audioManager
                 Else
                     Dim trackNum = 2
                     For Each track As LavaTrack In player.Queue
-                        descBuilder.Append($"{trackNum}: [{track.Title}] - ({track.Url}) {Environment.NewLine}")
+                        descBuilder.Append($"{trackNum}: [{track.Title}] {Environment.NewLine}")
                         trackNum += 1
                     Next
                     Return descBuilder.ToString
@@ -193,7 +197,7 @@ NotInheritable Class audioManager
 
     End Function
 
-    Public Shared Async Function replyAsync(guild As IGuild) As Task(Of String)
+    Public Shared Async Function restartAsync(guild As IGuild) As Task(Of String)
 
         Try
 
@@ -214,12 +218,35 @@ NotInheritable Class audioManager
         Catch ex As Exception
             loggingManager.LogCriticalAsync("audio", ex.Message)
             Return ex.Message
+
         End Try
 
 
     End Function
 
+    Public Shared Async Function seekAsync(guild As IGuild, timeSpan As TimeSpan) As Task(Of String) 'Broken - figure out why it is not working
 
+        Try
+
+            Dim player = _lavaNode.GetPlayer(guild)
+            If player Is Nothing Then
+                Return "Could not find player."
+            End If
+            If Not player.PlayerState = PlayerState.Playing Then
+                Return "I need to be playing something in order to repeat."
+            End If
+            Await loggingManager.LogInformationAsync("audio", $"{player.Track.Title} has been seeked to {timeSpan}.")
+            Await player.SeekAsync(timeSpan)
+            Return $"**{player.Track.Title}** has been seeked to *{timeSpan}*."
+
+
+        Catch ex As Exception
+            loggingManager.LogCriticalAsync("audio", ex.Message)
+            Return ex.Message
+        End Try
+
+
+    End Function
 
 #Region "Audio Events"
     Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task
@@ -241,16 +268,24 @@ NotInheritable Class audioManager
             Return
         End If
         Await player.PlayAsync(track)
-        Await player.TextChannel.SendMessageAsync($"Now Playing *{track.Title} - {track.Author}*")
+        Await player.TextChannel.SendMessageAsync($"Now Playing *{track.Title}* - **{track.Author}**")
 
     End Function
 
-    Public Shared Async Function updatePlayer(args As PlayerUpdateEventArgs) As Task
-        Dim player = args.Player
-        Dim track As LavaTrack = player.Track
-        Dim position As TimeSpan = args.Position
+    Public Shared Async Function trackStart(ByVal args As TrackStartEventArgs) As Task
+        Dim value As Object
+        If Not _disconnectTokens.TryGetValue(args.Player.VoiceChannel.Id, value) Then
+            Return
+        End If
+
+        If value.IsCancellationRequested Then
+            Return
+        End If
+        value.Cancel(True)
+        Await loggingManager.LogInformationAsync("audio", "Auto disconnect has been cancelled.")
 
     End Function
+
 
 #End Region
 

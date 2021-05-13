@@ -10,7 +10,6 @@ Imports Figgle
 'Use DraxCodes' way of sending messages using embeds instead of plain text
 'Create help/repeat/shuffle command - finished=repeat
 'Create clear queue command - Created command but only clears the first song in the queue
-'See if you can make the bot work via yt links instead of remember song name
 'Figure out how to make multi-colored ascii text for the banner
 #End Region
 

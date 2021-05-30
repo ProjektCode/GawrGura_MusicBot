@@ -10,6 +10,7 @@ Public Class bot
     Private _client As DiscordSocketClient
     Private _cmdService As CommandService
     Private _config As configManager
+    Private _util As Utilities
     Private ReadOnly eManager As New eventManager
 
     Public Sub bot()
@@ -37,8 +38,6 @@ Public Class bot
     End Sub
 
     Public Async Function mainAsync() As Task
-        'Console.WriteLine("What are you doing waking me up?")
-
         _config = configManager.Load
         bot()
 
@@ -46,6 +45,7 @@ Public Class bot
         Await eManager.loadEvents()
         Await _client.LoginAsync(TokenType.Bot, _config.token)
         Await _client.StartAsync
+        _util.winShow()
         Await Task.Delay(Timeout.Infinite)
     End Function
 

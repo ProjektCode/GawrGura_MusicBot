@@ -10,7 +10,7 @@ Public Class bot
     Private _client As DiscordSocketClient
     Private _cmdService As CommandService
     Private _config As configManager
-    Private _util As Utilities
+    Private _util As New Utilities
     Private ReadOnly eManager As New eventManager
 
     Public Sub bot()
@@ -45,7 +45,7 @@ Public Class bot
         Await eManager.loadEvents()
         Await _client.LoginAsync(TokenType.Bot, _config.token)
         Await _client.StartAsync
-        _util.winShow()
+        _util.winHide()
         Await Task.Delay(Timeout.Infinite)
     End Function
 

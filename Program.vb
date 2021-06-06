@@ -8,7 +8,7 @@ Imports Figgle
 #Region "To-Do List"
 'Add custom Logging
 'Use DraxCodes' way of sending messages using embeds instead of plain text
-'Create help/repeat/shuffle command - finished=repeat
+'Create help/repeat/shuffle command - finished=repeat/shuffle
 'Create clear queue command - Created command but only clears the first song in the queue
 'Figure out how to make multi-colored ascii text for the banner
 #End Region

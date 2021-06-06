@@ -246,6 +246,24 @@ NotInheritable Class audioManager
 
     End Function
 
+    Public Shared Async Function shuffleAsync(guild As IGuild, userMessage As SocketUserMessage, voiceState As IVoiceState) As Task(Of String)
+        Try
+            Dim player = _lavaNode.GetPlayer(guild)
+            If player.Queue.Count = 0 Or player.Queue.Count = 1 Then
+                Return "Not enough tracks for a shuffle"
+            End If
+            Dim users As Integer = player.VoiceChannel.GetUsersAsync.FlattenAsync.Result.Count(Function(x) Not x.IsBot)
+            If voiceState.VoiceChannel Is player.VoiceChannel Or ((voiceState.VoiceChannel IsNot player.VoiceChannel) And (users = 0 Or player.Track Is Nothing)) Then
+                player.Queue.Shuffle()
+                Dim emo As Emoji = New Emoji(":melondio:")
+                Return "Queue has been shuffled"
+            End If
+
+        Catch ex As InvalidOperationException
+            Return $"Error: {ex.Message}"
+        End Try
+    End Function
+
 #Region "Audio Events"
     Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task
 

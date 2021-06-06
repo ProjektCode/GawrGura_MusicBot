@@ -142,7 +142,6 @@ Public Class cmdMusic
         Dim g = Context.Guild
         Await msg.SendMessageAsync(Await audioManager.restartAsync(g))
     End Function
-
     <Command("seek")>
     <Summary("Seek to a certain point in the current song")>
     <[Alias]("sk")>
@@ -150,6 +149,15 @@ Public Class cmdMusic
         Dim msg = Context.Channel
         Dim g = Context.Guild
         Await msg.SendMessageAsync(Await audioManager.seekAsync(g, time))
+    End Function
+    <Command("shuffle")>
+    <Summary("Shuffles current queue if there are enough songs")>
+    Public Async Function cmdShuffle() As Task
+        Dim chnl = Context.Channel
+        Dim msg = Context.Message
+        Dim g = Context.Guild
+        Dim u As IVoiceState = Context.User
+        Await chnl.SendMessageAsync(Await audioManager.shuffleAsync(g, msg, u))
     End Function
 
 End Class

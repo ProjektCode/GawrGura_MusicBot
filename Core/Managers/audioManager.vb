@@ -34,7 +34,6 @@ NotInheritable Class audioManager
     End Function
 
     Public Shared Async Function leaveAsync(guild As IGuild) As Task(Of String)
-
         Try
             Dim player = _lavaNode.GetPlayer(guild)
             If player.PlayerState = PlayerState.Playing Or player.PlayerState = PlayerState.Connected Then
@@ -46,7 +45,6 @@ NotInheritable Class audioManager
         Catch ex As InvalidOperationException
             Return $"Error: {ex.Message}"
         End Try
-
     End Function
 
     Public Shared Async Function setVolumeAsync(guild As IGuild, vol As Integer) As Task(Of String)

@@ -4,12 +4,13 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>VB_Gawr_Gura</RootNamespace>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Gawr_Gura</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.3.1" />
-    <PackageReference Include="Discord.Net.Providers.WS4Net" Version="2.3.1" />
-    <PackageReference Include="Discord.Net.WebSocket" Version="2.3.1" />
+    <PackageReference Include="Discord.Net" Version="2.4.0" />
+    <PackageReference Include="Discord.Net.Providers.WS4Net" Version="2.4.0" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="2.4.0" />
     <PackageReference Include="Figgle" Version="0.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />

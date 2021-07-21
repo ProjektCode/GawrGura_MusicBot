@@ -11,5 +11,4 @@ NotInheritable Class serviceManager
         Return provider.GetRequiredService(Of T)()
     End Function
 
-
 End Class

@@ -8,9 +8,9 @@ Imports Figgle
 #Region "To-Do List"
 'Add custom Logging
 'Use DraxCodes' way of sending messages using embeds instead of plain text
-'Create help/repeat/shuffle command - finished=repeat/shuffle
-'Create clear queue command - Created command but only clears the first song in the queue
+'Create help/repeat/shuffle /now playing command - finished=repeat/shuffle/now playing
 'Figure out how to make multi-colored ascii text for the banner
+'List command no longer works - works just when it reaches the maximum character capacity the message doesn't send, need to make it into an embed for easier error handling
 #End Region
 
 Module Program
@@ -18,13 +18,14 @@ Module Program
     Dim process As Process = New Process
     Dim lavalink = $"{path}" + "Lavalink.jar"
     Dim app = $"{path}" + "application.yaml"
+    Dim utils As New Utilities
     Sub Main()
         Call setUp().GetAwaiter.GetResult()
     End Sub
 
     Private Async Function setUp() As Task
         Console.Title = "Gawr Gura"
-        setBanner("/ Gawr Gura \", ConsoleColor.Cyan, ConsoleColor.Green)
+        utils.setBanner("/ Gawr Gura \", ConsoleColor.Cyan, ConsoleColor.Green)
         Await (loggingManager.LogSetupAsync("setup", "Looking for Lavalink server..."))
         If Not File.Exists(lavalink) Or Not File.Exists(app) Then
             Await loggingManager.LogCriticalAsync("setup", "After the program closes please add your Lavalink.jar and application.yml file into the bin\netcoreapp3.1 folder.")
@@ -45,15 +46,5 @@ Module Program
         End If
     End Function
 
-    Private Sub setBanner(text As String, color As ConsoleColor, _color As ConsoleColor)
-        Console.ForegroundColor = color
-        Console.Write(FiggleFonts.Standard.Render(text), color)
-        Console.ForegroundColor = _color
-        Console.WriteLine("===================================================================", _color)
-    End Sub
 
-    Private Sub consoleTextColor(text As String, color As ConsoleColor)
-        Console.ForegroundColor = color
-        Console.WriteLine(vbTab + text, color)
-    End Sub
 End Module

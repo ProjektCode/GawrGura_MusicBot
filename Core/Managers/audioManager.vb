@@ -26,6 +26,7 @@ NotInheritable Class audioManager
 
         Try
             Await _lavaNode.JoinAsync(voiceState.VoiceChannel, channel)
+            Await setVolumeAsync(guild, 25)
             Return $"Joined {voiceState.VoiceChannel.Name}"
         Catch ex As Exception
             Return $"ERROR: {ex.Message}"
@@ -56,7 +57,7 @@ NotInheritable Class audioManager
             Dim player = _lavaNode.GetPlayer(guild)
 
             Await player.UpdateVolumeAsync(Math.Truncate(vol))
-            Console.WriteLine($"[{Date.Now}] {vbTab} (AUDIO) - Bot volume was set to {vol}")
+            loggingManager.LogInformationAsync("audio", $"Bot volume was set to {vol}")
             Return $"Volume has been set to {vol}."
 
         Catch ex As Exception
@@ -125,7 +126,7 @@ NotInheritable Class audioManager
                     Return $"**Now Playing:** {player.Track.Title} - Nothing else is queued"
 
                 Else
-                    Dim trackNum = 2
+                    Dim trackNum = 1
                     For Each track As LavaTrack In player.Queue
                         descBuilder.Append($"{trackNum}: [{track.Title}] {Environment.NewLine}")
                         trackNum += 1
@@ -141,7 +142,6 @@ NotInheritable Class audioManager
     End Function
 
     Public Shared Async Function clearTracks(guild As IGuild) As Task(Of String)
-        'Find out why it's only removing the first entry in the queue
 
         Try
             Dim player = _lavaNode.GetPlayer(guild)
@@ -151,16 +151,16 @@ NotInheritable Class audioManager
             End If
             If player.PlayerState = PlayerState.Playing Then
                 For Each track As LavaTrack In player.Queue
-                    player.Queue.TryDequeue(track)
-                    Console.WriteLine($"{track.Title} has been removed")
-                Next
+                    Await loggingManager.LogInformationAsync("audio", $"{track.Title} has been removed")
 
+                Next
+                player.Queue.Clear()
             End If
 
             If player.Queue.Count = 0 Then
                 Return "queue has been cleared"
             Else
-                Dim tracknum = player.Queue.Count
+                Dim tracknum = 1
                 For Each track As LavaTrack In player.Queue
                     descBuilder.Append($"{tracknum}: [{track.Title}] - could not be cleared {Environment.NewLine}")
                     tracknum += 1
@@ -212,13 +212,11 @@ NotInheritable Class audioManager
             Await loggingManager.LogInformationAsync("audio", $"{player.Track.Title} has been repeated.")
             Return $"I have repeated {player.Track.Title}"
 
-
         Catch ex As Exception
             loggingManager.LogCriticalAsync("audio", ex.Message)
             Return ex.Message
 
         End Try
-
 
     End Function
 
@@ -263,6 +261,21 @@ NotInheritable Class audioManager
             Return $"Error: {ex.Message}"
         End Try
     End Function
+
+    Public Shared Async Function nowPlayingAsync(g As IGuild) As Task(Of String)
+        Try
+            Dim player = _lavaNode.GetPlayer(g)
+            If player.Queue.Count = 0 Then
+                Return "Nothing is currently playing"
+            End If
+            Return $"The current song is {player.Track.Title}"
+
+        Catch ex As Exception
+            Return ex.Message
+        End Try
+
+    End Function
+
 
 #Region "Audio Events"
     Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task

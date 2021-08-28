@@ -1,4 +1,5 @@
 ﻿Imports System.Runtime.InteropServices
+Imports Figgle
 
 Public Class Utilities
 
@@ -24,6 +25,20 @@ Public Class Utilities
     Public Function winShow()
         Return ShowWindow(hwd, 1)
     End Function
+#End Region
+
+#Region "Command Window Banner Options"
+    Public Sub setBanner(text As String, color As ConsoleColor, _color As ConsoleColor)
+        Console.ForegroundColor = color
+        Console.Write(FiggleFonts.Standard.Render(text), color)
+        Console.ForegroundColor = _color
+        Console.WriteLine("===================================================================", _color)
+    End Sub
+
+    Public Sub consoleTextColor(text As String, color As ConsoleColor)
+        Console.ForegroundColor = color
+        Console.WriteLine(vbTab + text, color)
+    End Sub
 #End Region
 
 End Class

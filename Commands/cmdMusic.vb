@@ -4,11 +4,13 @@ Imports Discord.WebSocket
 Imports Victoria
 Imports Microsoft.Extensions.DependencyInjection
 Imports Victoria.Enums
+Imports Figgle
 
 <Name("Music")>
 Public Class cmdMusic
     Inherits ModuleBase(Of SocketCommandContext)
     Dim _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
+    Dim utils As New Utilities
 
     <Command("join")>
     <Summary("Joins the voice channel you are currently in")>
@@ -32,7 +34,7 @@ Public Class cmdMusic
             Return
         End If
 
-        Dim queries = searchQuery.Split(";"c)
+        Dim queries = searchQuery.Split("+"c)
         For Each query In queries
             Dim searchResponse = If(Uri.IsWellFormedUriString(query, UriKind.Absolute), Await _lavaNode.SearchAsync(query), Await _lavaNode.SearchYouTubeAsync(query))
             If searchResponse.LoadStatus = LoadStatus.LoadFailed OrElse searchResponse.LoadStatus = LoadStatus.NoMatches Then
@@ -48,10 +50,11 @@ Public Class cmdMusic
                         player.Queue.Enqueue(track)
                     Next track
                     Await ReplyAsync($"Queued {searchResponse.Tracks.Count} tracks.")
+                    Await loggingManager.LogInformationAsync("audio", $"Queued {searchResponse.Tracks.Count} tracks.")
                 Else
                     Dim track = searchResponse.Tracks(0)
                     player.Queue.Enqueue(track)
-                    'Await ReplyAsync($"Added {track.Title} to the queue") 'Sends all other songs in the queue via message
+                    Await ReplyAsync($"Added {track.Title} to the queue")
                     Await loggingManager.LogInformationAsync("audio", $"Enqueued: {track.Title}")
                 End If
             Else
@@ -125,6 +128,9 @@ Public Class cmdMusic
         Dim msg = Context.Channel
         Dim g = Context.Guild
         Await msg.SendMessageAsync(Await audioManager.clearTracks(g))
+        Threading.Thread.Sleep(1000)
+        Console.Clear()
+        utils.setBanner("/ Gawr Gura \", ConsoleColor.Cyan, ConsoleColor.Green)
     End Function
 
     <Command("stop")>
@@ -160,4 +166,12 @@ Public Class cmdMusic
         Await chnl.SendMessageAsync(Await audioManager.shuffleAsync(g, msg, u))
     End Function
 
+    <Command("np")>
+    <Summary("Shows what song is currently playing")>
+    Public Async Function cmdNowPlaying() As Task
+        Dim chnl = Context.Channel
+        Dim g = Context.Guild
+
+        Await chnl.SendMessageAsync(Await audioManager.nowPlayingAsync(g))
+    End Function
 End Class

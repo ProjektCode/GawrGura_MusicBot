@@ -3,7 +3,7 @@ Imports Discord
 
 <Name("General")>
 Public Class cmdGeneral
-
+	'Customize help command
 	Inherits ModuleBase(Of SocketCommandContext)
 	Private ReadOnly _service As CommandService
 	Private ReadOnly _config As configManager

@@ -10,7 +10,7 @@ Imports Figgle
 'Use DraxCodes' way of sending messages using embeds instead of plain text
 'Create help/repeat/shuffle /now playing command - finished=repeat/shuffle/now playing
 'Figure out how to make multi-colored ascii text for the banner
-'List command no longer works - works just when it reaches the maximum character capacity the message doesn't send, need to make it into an embed for easier error handling
+'List command no longer works - works just when it reaches the maximum character capacity the message doesn't send and send null exception in command log, need to make it into an embed for easier error handling
 #End Region
 
 Module Program

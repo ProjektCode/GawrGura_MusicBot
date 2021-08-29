@@ -34,14 +34,14 @@ Public Class cmdMusic
             Return
         End If
 
-        Dim searchResponse = If(Uri.IsWellFormedUriString(searchQuery, UriKind.Absolute), Await _lavaNode.SearchAsync(Responses.Search.SearchType.Direct, searchQuery), Await _lavaNode.SearchYouTubeAsync(searchQuery))
+        Dim searchResponse = If(Uri.IsWellFormedUriString(searchQuery, UriKind.Absolute), Await _lavaNode.SearchAsync(searchQuery), Await _lavaNode.SearchYouTubeAsync(searchQuery))
 
-        If searchResponse.Status = searchResponse.Status.LoadFailed OrElse searchResponse.Status = searchResponse.Status.NoMatches Then
+        If searchResponse.LoadStatus = searchResponse.LoadStatus.LoadFailed OrElse searchResponse.LoadStatus = searchResponse.LoadStatus.NoMatches Then
             Await ReplyAsync($"I wasn't able to find anything for `{searchQuery}`.")
             Return
-            End If
+        End If
 
-            Dim player = _lavaNode.GetPlayer(Context.Guild)
+        Dim player = _lavaNode.GetPlayer(Context.Guild)
 
             If player.PlayerState = PlayerState.Playing OrElse player.PlayerState = PlayerState.Paused Then
                 If Not String.IsNullOrWhiteSpace(searchResponse.Playlist.Name) Then

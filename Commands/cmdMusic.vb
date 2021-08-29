@@ -34,7 +34,7 @@ Public Class cmdMusic
             Return
         End If
 
-        Dim searchResponse = If(Uri.IsWellFormedUriString(searchQuery, UriKind.Absolute), Await _lavaNode.SearchAsync(Responses.Search.SearchType.YouTube, searchQuery), Await _lavaNode.SearchYouTubeAsync(searchQuery))
+        Dim searchResponse = If(Uri.IsWellFormedUriString(searchQuery, UriKind.Absolute), Await _lavaNode.SearchAsync(Responses.Search.SearchType.Direct, searchQuery), Await _lavaNode.SearchYouTubeAsync(searchQuery))
 
         If searchResponse.Status = searchResponse.Status.LoadFailed OrElse searchResponse.Status = searchResponse.Status.NoMatches Then
             Await ReplyAsync($"I wasn't able to find anything for `{searchQuery}`.")

@@ -1,10 +1,10 @@
-﻿Imports Discord.Commands
-Imports Discord
+﻿Imports Discord
 Imports Discord.WebSocket
+Imports Discord.Commands
 Imports Victoria
-Imports Microsoft.Extensions.DependencyInjection
 Imports Victoria.Enums
 Imports Figgle
+Imports Microsoft.Extensions.DependencyInjection
 
 <Name("Music")>
 Public Class cmdMusic
@@ -13,7 +13,7 @@ Public Class cmdMusic
     Dim utils As New Utilities
 
     <Command("join")>
-    <Summary("Joins the voice channel you are currently in")>
+    <Summary("Joins your voice channel.")>
     Public Async Function cmdJoin() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
@@ -21,7 +21,7 @@ Public Class cmdMusic
     End Function
 
     <Command("play")>
-    <Summary("Plays song from YouTube")>
+    <Summary("Plays song - Can be done by text search or URL.")>
     Public Async Function PlayAsync(<Remainder> ByVal searchQuery As String) As Task 'Figure out how to import this into audioManager - It does nothing when added inyo audioManager but when in the command class it works fine
 
         If String.IsNullOrWhiteSpace(searchQuery) Then
@@ -34,12 +34,11 @@ Public Class cmdMusic
             Return
         End If
 
-        Dim queries = searchQuery.Split("+"c)
-        For Each query In queries
-            Dim searchResponse = If(Uri.IsWellFormedUriString(query, UriKind.Absolute), Await _lavaNode.SearchAsync(query), Await _lavaNode.SearchYouTubeAsync(query))
-            If searchResponse.LoadStatus = LoadStatus.LoadFailed OrElse searchResponse.LoadStatus = LoadStatus.NoMatches Then
-                Await ReplyAsync($"I wasn't able to find anything for `{query}`.")
-                Return
+        Dim searchResponse = If(Uri.IsWellFormedUriString(searchQuery, UriKind.Absolute), Await _lavaNode.SearchAsync(Responses.Search.SearchType.YouTube, searchQuery), Await _lavaNode.SearchYouTubeAsync(searchQuery))
+
+        If searchResponse.Status = searchResponse.Status.LoadFailed OrElse searchResponse.Status = searchResponse.Status.NoMatches Then
+            Await ReplyAsync($"I wasn't able to find anything for `{searchQuery}`.")
+            Return
             End If
 
             Dim player = _lavaNode.GetPlayer(Context.Guild)
@@ -76,11 +75,11 @@ Public Class cmdMusic
                     Await ReplyAsync($"Now Playing: **{track.Title}**")
                 End If
             End If
-        Next query
+
     End Function
 
     <Command("leave")>
-    <Summary("Leaves voice channel")>
+    <Summary("Leaves voice channel.")>
     Public Async Function cmdLeave() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
@@ -89,7 +88,7 @@ Public Class cmdMusic
 
     <Command("volume")>
     <[Alias]("vol")>
-    <Summary("Set the volume of the bot")>
+    <Summary("Set the volume of the bot. Default is 25.")>
     Public Async Function cmdVol(vol As Integer) As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
@@ -98,7 +97,7 @@ Public Class cmdMusic
 
     <Command("pause")>
     <[Alias]("resume")>
-    <Summary("Pauses/Resumes music player. This command is a toggle")>
+    <Summary("A toggle command to pause/resume.")>
     Public Async Function cmdPause() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
@@ -106,7 +105,7 @@ Public Class cmdMusic
     End Function
 
     <Command("skip")>
-    <Summary("Skips the current song")>
+    <Summary("Skips the current song.")>
     Public Async Function cmdSkip() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
@@ -115,7 +114,7 @@ Public Class cmdMusic
 
     <Command("list")>
     <[Alias]("queue")>
-    <Summary("List all songs in the current queue")>
+    <Summary("Lists all songs in the current queue.")>
     Public Async Function cmdList() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
@@ -123,18 +122,18 @@ Public Class cmdMusic
     End Function
 
     <Command("clear")>
-    <Summary("Clears current queue")>
+    <Summary("Clears current queue.")>
     Public Async Function cmdClear() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
         Await msg.SendMessageAsync(Await audioManager.clearTracks(g))
-        Threading.Thread.Sleep(1000)
+        Threading.Thread.Sleep(1500)
         Console.Clear()
         utils.setBanner("/ Gawr Gura \", ConsoleColor.Cyan, ConsoleColor.Green)
     End Function
 
     <Command("stop")>
-    <Summary("Stops playback completely")>
+    <Summary("Stops playback completely.")>
     Public Async Function cmdStop() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
@@ -142,22 +141,24 @@ Public Class cmdMusic
     End Function
 
     <Command("restart")>
-    <Summary("Repeats the current song")>
+    <Summary("Repeats the current song.")>
     Public Async Function cmdRepeat() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
         Await msg.SendMessageAsync(Await audioManager.restartAsync(g))
     End Function
+
     <Command("seek")>
-    <Summary("Seek to a certain point in the current song")>
+    <Summary("Seek to a certain point in the current song.")>
     <[Alias]("sk")>
     Public Async Function cmdSeek(<Remainder> time As TimeSpan) As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
         Await msg.SendMessageAsync(Await audioManager.seekAsync(g, time))
     End Function
+
     <Command("shuffle")>
-    <Summary("Shuffles current queue if there are enough songs")>
+    <Summary("Shuffles current queue.")>
     Public Async Function cmdShuffle() As Task
         Dim chnl = Context.Channel
         Dim msg = Context.Message
@@ -167,7 +168,7 @@ Public Class cmdMusic
     End Function
 
     <Command("np")>
-    <Summary("Shows what song is currently playing")>
+    <Summary("Shows the current song.")>
     Public Async Function cmdNowPlaying() As Task
         Dim chnl = Context.Channel
         Dim g = Context.Guild

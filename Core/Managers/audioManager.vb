@@ -37,8 +37,9 @@ NotInheritable Class audioManager
     Public Shared Async Function leaveAsync(guild As IGuild) As Task(Of String)
         Try
             Dim player = _lavaNode.GetPlayer(guild)
-            If player.PlayerState = PlayerState.Playing Or player.PlayerState = PlayerState.Connected Then
+            If player.PlayerState = PlayerState.Playing Or player.PlayerState = PlayerState.None Then
                 Await player.StopAsync
+                Threading.Thread.Sleep(500)
                 Await _lavaNode.LeaveAsync(player.VoiceChannel)
                 Console.WriteLine($"[{Date.Now}] {vbTab} (AUDIO) {vbTab} Bot has left a voice channel")
                 Return "Thank you for listening!"
@@ -149,11 +150,13 @@ NotInheritable Class audioManager
             If player Is Nothing Then
                 Return "Player could not be found"
             End If
-            If player.PlayerState = PlayerState.Playing Then
+
+            If player.PlayerState = PlayerState.Playing And player.Queue.Count > 0 Then
                 For Each track As LavaTrack In player.Queue
                     Await loggingManager.LogInformationAsync("audio", $"{track.Title} has been removed")
 
                 Next
+                Threading.Thread.Sleep(500)
                 player.Queue.Clear()
             End If
 
@@ -279,10 +282,6 @@ NotInheritable Class audioManager
 
 #Region "Audio Events"
     Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task
-
-        If Not args.Reason.ShouldPlayNext Then
-            Return
-        End If
 
         Dim player = args.Player
         Dim queueable As LavaTrack

@@ -12,7 +12,9 @@ Imports Victoria.EventArgs
 
 NotInheritable Class audioManager
     Private Shared _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
-    Private Shared _disconnectTokens = New ConcurrentDictionary(Of ULong, CancellationTokenSource)()
+    Private Shared _disconnectTokens = New ConcurrentDictionary(Of ULong, CancellationTokenSource)
+    Private Shared _repeatTokens = New ConcurrentDictionary(Of ULong, Boolean)
+    Private Shared _timeLeft = New Dictionary(Of ULong, TimeSpan)
 
 
     Public Shared Async Function joinAsync(ByVal guild As IGuild, ByVal voiceState As IVoiceState, ByVal channel As ITextChannel) As Task(Of String)
@@ -245,7 +247,6 @@ NotInheritable Class audioManager
 
 
     End Function
-
     Public Shared Async Function shuffleAsync(guild As IGuild, userMessage As SocketUserMessage, voiceState As IVoiceState) As Task(Of String)
         Try
             Dim player = _lavaNode.GetPlayer(guild)
@@ -263,7 +264,6 @@ NotInheritable Class audioManager
             Return $"Error: {ex.Message}"
         End Try
     End Function
-
     Public Shared Async Function nowPlayingAsync(g As IGuild) As Task(Of String)
         Try
             Dim player = _lavaNode.GetPlayer(g)
@@ -278,11 +278,50 @@ NotInheritable Class audioManager
 
     End Function
 
+    Public Shared Async Function repeatAsync(g As IGuild) As Task(Of String)
+
+        If Not _lavaNode.HasPlayer(g) Then
+            Return "I'm not connected to a voice channel."
+        End If
+
+        Try
+            Dim player = _lavaNode.GetPlayer(g)
+            If player Is Nothing Then
+                Return "Bot is currently not in use."
+            End If
+
+            Dim repeat As Object
+            If player.PlayerState = PlayerState.Playing Then
+                If Not _repeatTokens.TryGetValue(player.VoiceChannel.Id, repeat) Then
+                    repeat = True
+                    _repeatTokens.TryAdd(player.VoiceChannel.Id, True)
+                Else
+                    _repeatTokens.TryUpdate(player.VoiceChannel.Id, Not repeat, repeat)
+                    repeat = _repeatTokens(player.VoiceChannel.Id)
+                End If
+
+                Return If(repeat, "**Repeat has been enabled**", "**Repeat has been disabled**")
+            Else
+                Return "No tracks to enable repeat"
+
+            End If
+
+        Catch ex As Exception
+
+        End Try
+
+    End Function
 
 #Region "Audio Events"
     Public Shared Async Function trackEnded(args As TrackEndedEventArgs) As Task
 
         If Not args.Reason.ShouldPlayNext Then
+            Return
+        End If
+        Dim repeat As Object
+        If _repeatTokens.TryGetValue(args.Player.VoiceChannel.Id, repeat) AndAlso repeat Then
+            Dim currentTrack = args.Track
+            Await args.Player.PlayAsync(currentTrack)
             Return
         End If
 

@@ -10,6 +10,7 @@ Imports Microsoft.Extensions.DependencyInjection
 Public Class cmdMusic
     Inherits ModuleBase(Of SocketCommandContext)
     Dim _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
+    Dim _repeatToken
     Dim utils As New Utilities
 
     <Command("join")>
@@ -142,7 +143,7 @@ Public Class cmdMusic
 
     <Command("restart")>
     <Summary("Repeats the current song.")>
-    Public Async Function cmdRepeat() As Task
+    Public Async Function cmdRestart() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
         Await msg.SendMessageAsync(Await audioManager.restartAsync(g))
@@ -174,5 +175,13 @@ Public Class cmdMusic
         Dim g = Context.Guild
 
         Await chnl.SendMessageAsync(Await audioManager.nowPlayingAsync(g))
+    End Function
+
+    <Command("repeat")>
+    <Summary("repeats current song")>
+    Public Async Function cmdRepeat() As Task
+        Dim chnl = Context.Channel
+        Dim g = Context.Guild
+        Await chnl.SendMessageAsync(Await audioManager.repeatAsync(g))
     End Function
 End Class

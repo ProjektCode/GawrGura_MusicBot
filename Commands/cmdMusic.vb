@@ -10,7 +10,6 @@ Imports Microsoft.Extensions.DependencyInjection
 Public Class cmdMusic
     Inherits ModuleBase(Of SocketCommandContext)
     Dim _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
-    Dim _repeatToken
     Dim utils As New Utilities
 
     <Command("join")>
@@ -23,8 +22,9 @@ Public Class cmdMusic
 
     <Command("play")>
     <Summary("Plays song - Can be done by text search or URL.")>
-    Public Async Function PlayAsync(<Remainder> ByVal searchQuery As String) As Task 'Figure out how to import this into audioManager - It does nothing when added inyo audioManager but when in the command class it works fine
-
+    Public Async Function PlayAsync(<Remainder> ByVal searchQuery As String) As Task
+        'Figure out how to import this into audioManager - It does nothing when added into audioManager but when in the command
+        'class it works fine
         If String.IsNullOrWhiteSpace(searchQuery) Then
             Await ReplyAsync("Please provide search terms.")
             Return
@@ -44,38 +44,38 @@ Public Class cmdMusic
 
         Dim player = _lavaNode.GetPlayer(Context.Guild)
 
-            If player.PlayerState = PlayerState.Playing OrElse player.PlayerState = PlayerState.Paused Then
-                If Not String.IsNullOrWhiteSpace(searchResponse.Playlist.Name) Then
-                    For Each track In searchResponse.Tracks
-                        player.Queue.Enqueue(track)
-                    Next track
-                    Await ReplyAsync($"Queued {searchResponse.Tracks.Count} tracks.")
-                    Await loggingManager.LogInformationAsync("audio", $"Queued {searchResponse.Tracks.Count} tracks.")
-                Else
-                    Dim track = searchResponse.Tracks(0)
+        If player.PlayerState = PlayerState.Playing OrElse player.PlayerState = PlayerState.Paused Then
+            If Not String.IsNullOrWhiteSpace(searchResponse.Playlist.Name) Then
+                For Each track In searchResponse.Tracks
                     player.Queue.Enqueue(track)
-                    Await ReplyAsync($"Added {track.Title} to the queue")
-                    Await loggingManager.LogInformationAsync("audio", $"Enqueued: {track.Title}")
-                End If
+                Next track
+                Await ReplyAsync($"Queued {searchResponse.Tracks.Count} tracks.")
+                Await loggingManager.LogInformationAsync("audio", $"Queued {searchResponse.Tracks.Count} tracks.")
             Else
                 Dim track = searchResponse.Tracks(0)
-
-                If Not String.IsNullOrWhiteSpace(searchResponse.Playlist.Name) Then
-                    For i = 0 To searchResponse.Tracks.Count - 1
-                        If i = 0 Then
-                            Await player.PlayAsync(track)
-                            Await ReplyAsync($"Now Playing: **{track.Title}**")
-                        Else
-                            player.Queue.Enqueue(searchResponse.Tracks(i))
-                        End If
-                    Next i
-
-                    Await ReplyAsync($"Queued {searchResponse.Tracks.Count} tracks.")
-                Else
-                    Await player.PlayAsync(track)
-                    Await ReplyAsync($"Now Playing: **{track.Title}**")
-                End If
+                player.Queue.Enqueue(track)
+                Await ReplyAsync($"Added {track.Title} to the queue")
+                Await loggingManager.LogInformationAsync("audio", $"Enqueued: {track.Title}")
             End If
+        Else
+            Dim track = searchResponse.Tracks(0)
+
+            If Not String.IsNullOrWhiteSpace(searchResponse.Playlist.Name) Then
+                For i = 0 To searchResponse.Tracks.Count - 1
+                    If i = 0 Then
+                        Await player.PlayAsync(track)
+                        Await ReplyAsync($"Now Playing: **{track.Title}**")
+                    Else
+                        player.Queue.Enqueue(searchResponse.Tracks(i))
+                    End If
+                Next i
+
+                Await ReplyAsync($"Queued {searchResponse.Tracks.Count} tracks.")
+            Else
+                Await player.PlayAsync(track)
+                Await ReplyAsync($"Now Playing: **{track.Title}**")
+            End If
+        End If
 
     End Function
 
@@ -84,7 +84,7 @@ Public Class cmdMusic
     Public Async Function cmdLeave() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
-        Await msg.SendMessageAsync(Await audioManager.leaveAsync(g))
+        Await msg.SendMessageAsync(Await audioManager.leaveAsync(g, TryCast(Context.User, IVoiceState)))
     End Function
 
     <Command("volume")>
@@ -113,13 +113,51 @@ Public Class cmdMusic
         Await msg.SendMessageAsync(Await audioManager.skipTrack(g))
     End Function
 
-    <Command("list")>
-    <[Alias]("queue")>
+    <Command("queue")>
+    <[Alias]("list")>
     <Summary("Lists all songs in the current queue.")>
     Public Async Function cmdList() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild
-        Await msg.SendMessageAsync(Await audioManager.listTracks(g))
+        Dim player = _lavaNode.GetPlayer(g)
+
+
+        If player.Queue.Count < 1 And player.Track IsNot Nothing Then
+            audioManager.noQueue = True
+        Else
+            audioManager.noQueue = False
+        End If
+
+        If audioManager.noQueue = True Then
+            Dim embed1 As New EmbedBuilder With {
+            .Title = "Current Song",
+            .Description = Await audioManager.listTracks(g),
+            .Color = New Color(utils.randomEmbedColor),
+            .ThumbnailUrl = Context.Client.CurrentUser.GetAvatarUrl,
+            .Footer = New EmbedFooterBuilder With {
+                .Text = "Current Song Embed",
+                .IconUrl = Context.Client.CurrentUser.GetAvatarUrl
+            }
+         }
+            Await msg.SendMessageAsync("", False, embed1.Build)
+        Else
+            If audioManager.noQueue = False Then
+                Dim embed2 As New EmbedBuilder With {
+                    .Title = "Current Queue",
+                    .Description = Await audioManager.listTracks(g),
+                    .Color = New Color(utils.randomEmbedColor),
+                    .ThumbnailUrl = Context.Client.CurrentUser.GetAvatarUrl,
+                    .Footer = New EmbedFooterBuilder With {
+                        .Text = "Queue Embed",
+                        .IconUrl = Context.Client.CurrentUser.GetAvatarUrl
+                    }
+                }
+                Await msg.SendMessageAsync("", False, embed2.Build)
+            End If
+        End If
+
+
+
     End Function
 
     <Command("clear")>
@@ -184,4 +222,5 @@ Public Class cmdMusic
         Dim g = Context.Guild
         Await chnl.SendMessageAsync(Await audioManager.repeatAsync(g))
     End Function
+
 End Class

@@ -41,4 +41,33 @@ Public Class Utilities
     End Sub
 #End Region
 
+#Region "Color Options"
+
+    Public Function randomEmbedColor()
+        Dim rand As New Random
+        Dim colors() As Integer =
+        {
+            16711680, 'Red
+            65280,    ' Green
+            255,      ' Blue
+            16777215, ' White
+            10617087, ' Purple
+            65535,    ' Light Blue
+            16776960, ' Yellow
+            16711935, ' Light Purple
+            16751104, ' Orange
+            16751586, ' Light Pink
+            10682267, ' Light Green
+            14423100, ' Crimson
+            9055202,  ' Blue Violet
+            15132410  ' Lavendar
+        }
+
+        Dim colorPicker As Integer = colors(rand.Next(0, colors.Length))
+        Dim colour As UInteger = Convert.ToInt32(colorPicker)
+
+        Return colour
+    End Function
+#End Region
+
 End Class

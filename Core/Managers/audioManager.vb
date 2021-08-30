@@ -15,6 +15,7 @@ NotInheritable Class audioManager
     Private Shared _disconnectTokens = New ConcurrentDictionary(Of ULong, CancellationTokenSource)
     Private Shared _repeatTokens = New ConcurrentDictionary(Of ULong, Boolean)
     Private Shared _timeLeft = New Dictionary(Of ULong, TimeSpan)
+    Public Shared noQueue = New Boolean
 
 
     Public Shared Async Function joinAsync(ByVal guild As IGuild, ByVal voiceState As IVoiceState, ByVal channel As ITextChannel) As Task(Of String)
@@ -35,14 +36,24 @@ NotInheritable Class audioManager
         End Try
 
     End Function
-    Public Shared Async Function leaveAsync(guild As IGuild) As Task(Of String)
+
+    Public Shared Async Function leaveAsync(guild As IGuild, voiceState As IVoiceState) As Task(Of String)
+
+        Dim player = _lavaNode.GetPlayer(guild)
+
+        If player Is Nothing Then 'Check if player is null
+            Return "Player could not be found"
+        End If
+
+        If voiceState.VoiceChannel Is Nothing Then
+            Return "You must be connected to a voice channel"
+        End If
         Try
-            Dim player = _lavaNode.GetPlayer(guild)
-            If player.PlayerState = PlayerState.Playing Or player.PlayerState = PlayerState.Connected Then
+
+            If player.PlayerState = PlayerState.Playing Or player.PlayerState = PlayerState.Connected Or player.PlayerState = PlayerState.Stopped Then
                 Await player.StopAsync
-                Threading.Thread.Sleep(500)
                 Await _lavaNode.LeaveAsync(player.VoiceChannel)
-                Console.WriteLine($"[{Date.Now}] {vbTab} (AUDIO) {vbTab} Bot has left a voice channel")
+                Await loggingManager.LogInformationAsync("audio", $"[{Date.Now}] - Bot has left a voice channel.")
                 Return "Thank you for listening!"
             End If
         Catch ex As InvalidOperationException
@@ -116,21 +127,29 @@ NotInheritable Class audioManager
         End Try
     End Function
 
-    Public Shared Async Function listTracks(guild As IGuild) As Task(Of String) 'When converting to embed add track.url back
+    Public Shared Async Function listTracks(guild As IGuild) As Task(Of String)
         Try
             Dim descBuilder = New StringBuilder
             Dim player = _lavaNode.GetPlayer(guild)
+
+
             If player Is Nothing Then 'Check if player is null
                 Return "Player could not be found"
             End If
             If player.PlayerState = PlayerState.Playing Then
                 If player.Queue.Count < 1 And player.Track IsNot Nothing Then
-                    Return $"**Now Playing:** {player.Track.Title} - Nothing else is queued"
-
+                    noQueue = True
+                    Return $"*{player.Track.Title}* {Environment.NewLine} {player.Track.Url}"
                 Else
+                    noQueue = False
+
                     Dim trackNum = 1
+                    descBuilder.Append("**NOW PLAYING**" & vbLf & $"*{player.Track.Title}*" & vbLf & "------------------------------------------------------------" & vbLf)
                     For Each track As LavaTrack In player.Queue
-                        descBuilder.Append($"{trackNum}: [{track.Title}] {Environment.NewLine}")
+                        If descBuilder.Length > 1000 Then
+                            Return descBuilder.ToString
+                        End If
+                        descBuilder.Append($"{trackNum}: [*{track.Title}*]" & vbLf & $"{track.Url}" & vbLf)
                         trackNum += 1
                     Next
                     Return descBuilder.ToString
@@ -153,11 +172,14 @@ NotInheritable Class audioManager
             End If
 
             If player.PlayerState = PlayerState.Playing And player.Queue.Count > 0 Then
-                For Each track As LavaTrack In player.Queue
-                    Await loggingManager.LogInformationAsync("audio", $"{track.Title} has been removed")
+                'Below causes "Object synchronization method was called from an unsynchronized block of code." When logging removed
+                'tracks.
 
-                Next
-                Threading.Thread.Sleep(500)
+                'For Each track As LavaTrack In player.Queue
+                '    Await loggingManager.LogInformationAsync("audio", $"{track.Title} has been removed")
+
+                'Next
+                'Threading.Thread.Sleep(1000)
                 player.Queue.Clear()
             End If
 
@@ -247,6 +269,7 @@ NotInheritable Class audioManager
 
 
     End Function
+
     Public Shared Async Function shuffleAsync(guild As IGuild, userMessage As SocketUserMessage, voiceState As IVoiceState) As Task(Of String)
         Try
             Dim player = _lavaNode.GetPlayer(guild)
@@ -264,6 +287,7 @@ NotInheritable Class audioManager
             Return $"Error: {ex.Message}"
         End Try
     End Function
+
     Public Shared Async Function nowPlayingAsync(g As IGuild) As Task(Of String)
         Try
             Dim player = _lavaNode.GetPlayer(g)

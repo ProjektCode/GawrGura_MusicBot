@@ -7,10 +7,9 @@ Imports Figgle
 
 #Region "To-Do List"
 'Add custom Logging
-'Use DraxCodes' way of sending messages using embeds instead of plain text
-'Create help/repeat/restart/shuffle/now playing command - finished=all
+'Use DraxCodes' way of sending messages using embeds instead of plain text - Some works and some does not not fully implemented yet
 'Figure out how to make multi-colored ascii text for the banner
-'List command no longer works - works just when it reaches the maximum character capacity the message doesn't send and sends null exception in command log, need to make it into an embed for easier error handling
+'Leave command gets a null exception error when not connected to a voice channel even with attempted error handling in place
 #End Region
 
 Module Program

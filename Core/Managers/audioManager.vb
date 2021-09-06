@@ -1,21 +1,21 @@
-﻿Imports System.Collections.Concurrent
-Imports System.Text
+﻿Imports System.Text
 Imports System.Threading
+Imports System.Collections.Concurrent
 Imports Discord
 Imports Discord.Commands
 Imports Discord.WebSocket
-Imports Microsoft.Extensions.DependencyInjection
-Imports Microsoft.Extensions.Logging
 Imports Victoria
 Imports Victoria.Enums
 Imports Victoria.EventArgs
+Imports Microsoft.Extensions.Logging
+Imports Microsoft.Extensions.DependencyInjection
 
 NotInheritable Class audioManager
     Private Shared _lavaNode As LavaNode = serviceManager.provider.GetRequiredService(Of LavaNode)
     Private Shared _disconnectTokens = New ConcurrentDictionary(Of ULong, CancellationTokenSource)
     Private Shared _repeatTokens = New ConcurrentDictionary(Of ULong, Boolean)
-    Private Shared _timeLeft = New Dictionary(Of ULong, TimeSpan)
-    Public Shared noQueue = New Boolean
+    Private Shared _timeLeft = New Dictionary(Of ULong, TimeSpan) 'Not been used yet
+    Public Shared noQueue = New Boolean 'Is this needed in this manager or could it be used in the queue command only
 
 
     Public Shared Async Function joinAsync(ByVal guild As IGuild, ByVal voiceState As IVoiceState, ByVal channel As ITextChannel) As Task(Of String)
@@ -129,7 +129,7 @@ NotInheritable Class audioManager
 
     Public Shared Async Function listTracks(guild As IGuild) As Task(Of String)
         Try
-            Dim descBuilder = New StringBuilder
+            Dim sBuilder = New StringBuilder
             Dim player = _lavaNode.GetPlayer(guild)
 
 
@@ -144,15 +144,15 @@ NotInheritable Class audioManager
                     noQueue = False
 
                     Dim trackNum = 1
-                    descBuilder.Append("**NOW PLAYING**" & vbLf & $"*{player.Track.Title}*" & vbLf & "------------------------------------------------------------" & vbLf)
+                    sBuilder.Append("**NOW PLAYING**" & vbLf & $"*{player.Track.Title}*" & vbLf & "------------------------------------------------------------" & vbLf)
                     For Each track As LavaTrack In player.Queue
-                        If descBuilder.Length > 1000 Then
-                            Return descBuilder.ToString
+                        If sBuilder.Length > 1000 Then
+                            Return sBuilder.ToString
                         End If
-                        descBuilder.Append($"{trackNum}: [*{track.Title}*]" & vbLf & $"{track.Url}" & vbLf)
+                        sBuilder.Append($"**[{trackNum}]** *{track.Title}*" & vbLf & $"{track.Url}" & vbLf)
                         trackNum += 1
                     Next
-                    Return descBuilder.ToString
+                    Return sBuilder.ToString
 
                 End If
             End If
@@ -166,7 +166,7 @@ NotInheritable Class audioManager
 
         Try
             Dim player = _lavaNode.GetPlayer(guild)
-            Dim descBuilder = New StringBuilder
+            Dim sBuilder = New StringBuilder
             If player Is Nothing Then
                 Return "Player could not be found"
             End If
@@ -188,10 +188,10 @@ NotInheritable Class audioManager
             Else
                 Dim tracknum = 1
                 For Each track As LavaTrack In player.Queue
-                    descBuilder.Append($"{tracknum}: [{track.Title}] - could not be cleared {Environment.NewLine}")
+                    sBuilder.Append($"{tracknum}: [{track.Title}] - could not be cleared {Environment.NewLine}")
                     tracknum += 1
                 Next
-                Return descBuilder.ToString
+                Return sBuilder.ToString
             End If
         Catch ex As Exception
             Return ex.Message

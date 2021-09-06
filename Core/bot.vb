@@ -45,7 +45,7 @@ Public Class bot
         Await eManager.loadEvents()
         Await _client.LoginAsync(TokenType.Bot, _config.token)
         Await _client.StartAsync
-        '_util.winHide()
+        _util.winHide()
         Await Task.Delay(Timeout.Infinite)
     End Function
 

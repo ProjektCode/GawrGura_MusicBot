@@ -17,7 +17,7 @@ NotInheritable Class loggingManager
 		If Not String.IsNullOrWhiteSpace(message) Then
 			Await Append($"{message}" & vbLf, ConsoleColor.White)
 		ElseIf exception Is Nothing Then
-			Await Append("Uknown Exception. Exception Returned Null." & vbLf, ConsoleColor.DarkRed)
+			Await Append("Unknown Exception. Exception Returned Null." & vbLf, ConsoleColor.DarkRed)
 		ElseIf exception.Message Is Nothing Then
 			Await Append($"Unknown {exception.StackTrace}" & vbLf, GetConsoleColor(severity))
 		End If

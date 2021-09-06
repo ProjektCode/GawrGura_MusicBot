@@ -16,13 +16,14 @@ Public Class Utilities
 
     Dim hwd As IntPtr = GetConsoleWindow()
 
-    'Hides Console Window
+    'Hides Window
     Public Function winHide()
+
         Return ShowWindow(hwd, 0)
     End Function
 
-    'Exposes Console Window
     Public Function winShow()
+
         Return ShowWindow(hwd, 1)
     End Function
 #End Region

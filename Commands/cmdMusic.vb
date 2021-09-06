@@ -115,7 +115,7 @@ Public Class cmdMusic
 
     <Command("queue")>
     <[Alias]("list")>
-    <Summary("Lists all songs in the current queue.")>
+    <Summary("Shows a short list of the current queue.")>
     Public Async Function cmdList() As Task
         Dim msg = Context.Channel
         Dim g = Context.Guild

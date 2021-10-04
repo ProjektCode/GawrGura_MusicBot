@@ -17,28 +17,31 @@ Public Class cmdHelp
 	<Command("help")>
 	<Summary("Gives a short description of all commands")>
 	Public Async Function HelpAsync() As Task
-		Dim embed = New EmbedBuilder() With {
-			.Color = New Color(_utils.randomEmbedColor),
-			.Description = "These are the commands you can use"
-		}
+		Dim desc
 
 		For Each [module] In _service.Modules
-			Dim description As String = Nothing
-			For Each cmd In [module].Commands
-				Dim result = Await cmd.CheckPreconditionsAsync(Context)
-				If result.IsSuccess Then
-					description &= $"__*{cmd.Aliases.First}*__ - {cmd.Summary}" & vbLf
-				End If
-			Next cmd
+			If Not [module].Name = "Music" Then
 
-			If Not String.IsNullOrWhiteSpace(description) Then
-				embed.AddField(Sub(x)
-								   x.Name = [module].Name
-								   x.Value = description
-								   x.IsInline = True
-							   End Sub)
+			Else
+				Dim description As String = Nothing
+				For Each cmd In [module].Commands
+					Dim result = Await cmd.CheckPreconditionsAsync(Context)
+					If result.IsSuccess Then
+						description &= $"__*{cmd.Aliases.First}*__ - {cmd.Summary}" & vbLf
+					End If
+				Next cmd
+
+				If Not String.IsNullOrWhiteSpace(description) Then
+					desc = description
+				End If
 			End If
 		Next [module]
+
+		Dim embed = New EmbedBuilder() With {
+			.Color = New Color(_utils.randomEmbedColor),
+			.Title = "Music Commands",
+			.Description = desc
+		}
 
 		Await ReplyAsync("", False, embed.Build())
 	End Function
